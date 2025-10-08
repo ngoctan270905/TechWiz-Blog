@@ -99,7 +99,7 @@
                 <div class="flex-grow border-t border-gray-300 dark:border-gray-700"></div>
             </div>
 
-            <a href="#"
+            <a href="{{ route('google.redirect') }}"
                 class="inline-flex items-center justify-center w-full bg-white dark:bg-gray-800 border border-gray-300 
                 dark:border-gray-600 rounded-xl py-3 px-4 text-gray-700 dark:text-gray-200 font-medium shadow-sm 
                 hover:shadow-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-300">
