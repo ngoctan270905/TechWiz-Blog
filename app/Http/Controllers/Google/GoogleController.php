@@ -66,7 +66,7 @@ class GoogleController extends Controller
             Auth::login($user);
 
             // Chuyển hướng tới trang dự định hoặc dashboard
-            return redirect()->intended('/dashboard');
+            return redirect()->intended('/');
 
         } catch (\Exception $e) {
             // Log lỗi để dễ dàng debug
