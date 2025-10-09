@@ -44,6 +44,8 @@ class AppServiceProvider extends ServiceProvider
             [SendWelcomeNotification::class, 'handle']
         );
 
+
+
         /*
         # LUỒNG XỬ LÝ (Tóm tắt):
         Khi người dùng đăng nhập thành công -> Event 'Login' được kích hoạt.
