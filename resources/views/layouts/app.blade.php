@@ -5,6 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="user-id" content="{{ auth()->user()->id ?? '' }}">
 
     <title>{{ config('app.name', 'TechWiz') }}</title>
 
@@ -41,6 +42,11 @@
             @yield('content')
         </main>
     </div>
+
+    {{-- Import Echo chỉ khi user đã đăng nhập --}}
+    @auth
+        @vite('resources/js/echo.js')
+    @endauth
 </body>
 
 </html>

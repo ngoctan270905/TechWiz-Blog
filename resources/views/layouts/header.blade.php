@@ -30,50 +30,47 @@
                 <!-- Notification Dropdown -->
                 <x-dropdown align="right" width="64">
                     <x-slot name="trigger">
-                        <button class="relative focus:outline-none">
-                            <i class="fas fa-bell text-gray-600 dark:text-gray-300 text-xl hover:text-indigo-500 transition"></i>
+                        <button class="relative focus:outline-none" id="notification-trigger">
+                            <i
+                                class="fas fa-bell text-gray-600 dark:text-gray-300 text-xl hover:text-indigo-500 transition"></i>
                             <!-- Badge -->
-                            <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                                3
+                            <!-- Badge -->
+                            <span id="notification-badge"
+                                class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center {{ auth()->user()->unreadNotifications()->count() ? '' : 'hidden' }}">
+                                {{ auth()->user()->unreadNotifications()->count() }}
                             </span>
                         </button>
                     </x-slot>
 
                     <x-slot name="content">
-                        <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 font-semibold text-gray-700 dark:text-gray-200">
+                        <div
+                            class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 font-semibold text-gray-700 dark:text-gray-200">
                             Thông báo
                         </div>
-                        <div class="max-h-80 overflow-y-auto scrollbar-hide">
-                            <div class="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
-                                Bình luận mới trên bài viết của bạn
-                            </div>
-                            <div class="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
-                                Ai đó đã thích bài viết của bạn
-                            </div>
-                            <div class="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
-                                Bài viết mới từ người theo dõi
-                            </div>
-                            <div class="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
-                                Bài viết mới từ người theo dõi
-                            </div>
-                            <div class="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
-                                Bài viết mới từ người theo dõi
-                            </div>
-                            <div class="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
-                                Bài viết mới từ người theo dõi
-                            </div>
-                            <div class="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
-                                Bài viết mới từ người theo dõi
-                            </div>
-                            <div class="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
-                                Bài viết mới từ người theo dõi
-                            </div>
-                            <div class="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
-                                Bài viết mới từ người theo dõi
-                            </div>
+                        <div id="notification-list" class="max-h-80 overflow-y-auto scrollbar-hide">
+                            @foreach (auth()->user()->notifications()->latest()->take(10)->get() as $notification)
+                                @php
+                                    $data = $notification->data;
+                                @endphp
+
+                                <div class="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
+                                    @if (!empty($data['link']))
+                                        <a href="{{ $data['link'] }}"
+                                            class="block text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition">
+                                            {!! $data['message'] !!}
+                                        </a>
+                                    @else
+                                        <span class="text-gray-600 dark:text-gray-300">
+                                            {!! $data['message'] !!}
+                                        </span>
+                                    @endif
+                                </div>
+                            @endforeach
+
                         </div>
                         <div class="px-4 py-2 text-center border-t border-gray-200 dark:border-gray-700">
-                            <a href="#" class="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">Xem thông báo trước đó</a>
+                            <a href="#" class="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">Xem thông
+                                báo trước đó</a>
                         </div>
                     </x-slot>
                 </x-dropdown>
@@ -143,3 +140,49 @@
         </div>
     </div>
 </header>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Lấy userId từ meta
+        const userMeta = document.querySelector('meta[name="user-id"]');
+        if (!userMeta) return;
+        const userId = userMeta.content;
+
+        // Kiểm tra Echo đã load chưa
+        if (!window.Echo) {
+            return;
+        }
+
+        // Lắng nghe kênh private
+        window.Echo.private('notifications.' + userId)
+            .subscribed(() => {
+                // ...
+            })
+            .listen('.user.logged-in', (e) => {
+                // Xử lý khi nhận được event Real-time
+                // Ví dụ: Cập nhật badge đếm thông báo hoặc reload danh sách thông báo.
+            });
+
+        // Khi người dùng mở dropdown thông báo → mark as read và ẩn badge
+        const trigger = document.getElementById('notification-trigger');
+        if (trigger) {
+            trigger.addEventListener('click', () => {
+                fetch(`{{ route('notifications.markRead') }}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': document.head.querySelector('meta[name="csrf-token"]')
+                            .content,
+                        'Accept': 'application/json',
+                    },
+                    credentials: 'same-origin'
+                }).then(() => {
+                    const badge = document.getElementById('notification-badge');
+                    if (badge) {
+                        badge.textContent = '0';
+                        badge.classList.add('hidden');
+                    }
+                }).catch(() => {});
+            });
+        }
+    });
+</script>
