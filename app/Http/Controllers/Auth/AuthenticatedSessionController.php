@@ -28,8 +28,18 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('home', absolute: false));
+        # Kiểm tra role và chuyển hướng tương ứng
+        $user = Auth::user();
+
+        # Nếu là admin, chuyển hướng đến dashboard admin
+        if ($user->role === 'admin') {
+            return redirect()->intended(route('admin.dashboard'));
+        }
+ 
+        # Còn lại chuyển hướng đến trang home
+        return redirect()->intended(route('home'));
     }
+
 
     /**
      * Destroy an authenticated session.

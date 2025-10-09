@@ -27,14 +27,11 @@
         <!-- Auth Section -->
         <div class="flex items-center space-x-4">
             @auth
-                <!-- Notification Dropdown -->
-                <x-dropdown align="right" width="64">
+                <x-dropdown align="right" width="72">
                     <x-slot name="trigger">
                         <button class="relative focus:outline-none" id="notification-trigger">
                             <i
                                 class="fas fa-bell text-gray-600 dark:text-gray-300 text-xl hover:text-indigo-500 transition"></i>
-                            <!-- Badge -->
-                            <!-- Badge -->
                             <span id="notification-badge"
                                 class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center {{ auth()->user()->unreadNotifications()->count() ? '' : 'hidden' }}">
                                 {{ auth()->user()->unreadNotifications()->count() }}
@@ -75,8 +72,7 @@
                     </x-slot>
                 </x-dropdown>
 
-                <!-- User Dropdown -->
-                <x-dropdown align="right" width="48">
+                <x-dropdown align="right" width="52">
                     <x-slot name="trigger">
                         <button class="flex items-center focus:outline-none">
                             @if (Auth::user()->profile_photo_path)
@@ -105,6 +101,15 @@
                             <i class="fas fa-user-circle mr-2 text-indigo-500"></i> Hồ sơ cá nhân
                         </x-dropdown-link>
 
+                        {{-- KIỂM TRA QUYỀN ADMIN --}}
+                        @if (Auth::user()->role === 'admin')
+                            <x-dropdown-link :href="route('admin.dashboard')">
+                                <i class="fas fa-tools mr-2 text-orange-500"></i> Truy cập trang quản trị
+                            </x-dropdown-link>
+                        @endif
+
+                        {{-- KẾT THÚC KIỂM TRA QUYỀN ADMIN --}}
+
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <x-dropdown-link :href="route('logout')"
@@ -115,7 +120,6 @@
                     </x-slot>
                 </x-dropdown>
             @else
-                <!-- Guest Dropdown -->
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button class="flex items-center focus:outline-none">

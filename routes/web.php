@@ -12,14 +12,14 @@ use Illuminate\Notifications\DatabaseNotification;
 
 use App\Http\Controllers\Admin\AdminDashboardController;
 
-//------------------------------------------------------
+// ----------------------------------------------------------------------------------
 
 
 # Route Người Dùng Không Cần Xác Thực (Guest)
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 # Route Nhóm Yêu Cầu Cần Xác Thực (Authentication)
-Route::middleware('auth')->group(function () {
+Route::middleware('auth', 'verified')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -32,7 +32,11 @@ Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])->name(
 Route::get('/auth/google/callback', [GoogleController::class, 'handleGoogleCallback']);
 
 
-# Route dành cho Admin
+// ----------------------------------------------------------------------------------
+
+
+
+# ROUTE NHÓM ADMIN (Cần xác thực và kiểm tra role)
 Route::prefix('admin')
     ->name('admin.')
     ->middleware(['auth', 'verified', 'checkrole:admin'])
@@ -42,19 +46,16 @@ Route::prefix('admin')
     });
 
 
+// ----------------------------------------------------------------------------------
 
 
 
+## ROUTE FALLBACK
+Route::fallback(function () {
+    abort(404);
+});
 
-
-
-
-
-
-
-
-
-
+// ----------------------------------------------------------------------------------
 
 
 require __DIR__ . '/auth.php';

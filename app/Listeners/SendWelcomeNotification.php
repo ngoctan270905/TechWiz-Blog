@@ -27,34 +27,28 @@ class SendWelcomeNotification
     public function handle(Login $event): void
     {
         // Lấy đối tượng user từ Event
-        $rawUser = $event->user;
+        $user = $event->user;
 
-        // Kiểm tra tính hợp lệ của đối tượng User
-        if (!$rawUser instanceof User) {
-            // Log cảnh báo được giữ lại để phát hiện lỗi nghiêm trọng trong môi trường Production
-            Log::warning('SendWelcomeNotification: user is not App\\Models\\User', [
-                'actual_class' => is_object($rawUser) ? get_class($rawUser) : gettype($rawUser),
-            ]);
+        // Kiểm tra tính hợp lệ của đối tượng User. Nếu không phải, dừng xử lý.
+        if (!$user instanceof User) {
+            // Có thể giữ lại Log::warning nếu đây là mã nguồn quan trọng: Log::warning('...');
             return;
         }
-        
-        $user = $rawUser;
-        
-        // --- Logic Chặn trùng lặp cho Database Notification ---
-        
-        // Kiểm tra xem Database Notification loại 'WelcomeUser' đã tồn tại 
-        // và được tạo trong vòng 1 phút gần nhất hay chưa
-        $hasRecentWelcome = $user->notifications()
+
+        // --- Logic Gửi Database Notification (Chỉ 1 lần duy nhất) ---
+
+        // Kiểm tra xem Database Notification loại 'WelcomeUser' đã TỪNG tồn tại cho tài khoản này chưa
+        $hasWelcomeNotificationEver = $user->notifications()
             ->where('type', WelcomeUser::class)
-            ->where('created_at', '>=', now()->subMinute())
             ->exists();
 
-        if (!$hasRecentWelcome) {
-            // 1. Gửi Database Notification (chỉ một lần)
+        // Nếu CHƯA TỪNG có thông báo chào mừng
+        if (!$hasWelcomeNotificationEver) {
+            // 1. Gửi Database Notification (chỉ tạo thông báo chào mừng LẦN ĐẦU)
             $user->notify(new WelcomeUser());
         }
 
-        // --- Logic Gửi Real-time Event ---
+        // --- Logic Gửi Real-time Event (Vẫn gửi mỗi lần đăng nhập) ---
 
         // 2. Gửi Real-time Broadcast (hiển thị ngay lập tức)
         event(new UserLoggedIn($user));

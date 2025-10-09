@@ -31,45 +31,42 @@ class GoogleController extends Controller
             $user = User::where('email', $email)->first();
 
             if ($user) {
-                // Tài khoản đã tồn tại (Đăng ký form hoặc đã liên kết Google trước đó)
-                
-                // 2. LIÊN KẾT: Cập nhật google_id
+                // Đã tồn tại: liên kết google_id nếu chưa có
                 $user->google_id = $googleId;
 
                 // Cập nhật ảnh đại diện nếu chưa có
                 if (is_null($user->profile_photo_path)) {
                     $user->profile_photo_path = $googleUser->getAvatar();
                 }
-                
-                // QUAN TRỌNG: Đánh dấu email đã xác minh nếu chưa xác minh
+
+                // Xác minh email nếu chưa xác minh
                 if (is_null($user->email_verified_at)) {
                     $user->email_verified_at = now();
                 }
-                
-                $user->save();
 
+                $user->save();
             } else {
-                // 3. Người dùng hoàn toàn mới (Tạo tài khoản mới)
+                // Tạo người dùng mới
                 $user = User::create([
                     'google_id' => $googleId,
                     'name' => $googleUser->getName(),
                     'email' => $email,
-                    // Đánh dấu email đã xác minh vì Google đã làm điều đó
-                    'email_verified_at' => now(), 
+                    'email_verified_at' => now(),
                     'profile_photo_path' => $googleUser->getAvatar(),
-                    'role' => 'user', 
-                    // Tạo mật khẩu ngẫu nhiên để thỏa mãn ràng buộc NOT NULL của DB
-                    'password' => Hash::make(Str::random(16)), 
+                    'role' => 'user', // Mặc định user
+                    'password' => Hash::make(Str::random(16)),
                 ]);
             }
 
             Auth::login($user);
 
-            // Chuyển hướng tới trang dự định hoặc dashboard
-            return redirect()->intended('/');
+            // ⚙️ Logic điều hướng theo role
+            if ($user->role === 'admin') {
+                return redirect()->intended(route('admin.dashboard'));
+            }
 
+            return redirect()->intended(route('home'));
         } catch (\Exception $e) {
-            // Log lỗi để dễ dàng debug
             \Log::error('Google login failed: ' . $e->getMessage());
             return redirect('/login')->with('error', 'Đăng nhập Google thất bại! Vui lòng thử lại.');
         }
