@@ -42,35 +42,53 @@
                     <x-slot name="content">
                         <div
                             class="px-4 py-2 border-b border-gray-200 dark:border-gray-700 font-semibold text-gray-700 dark:text-gray-200">
-                            Thông báo
+                            🔔 Thông báo
                         </div>
+
                         <div id="notification-list" class="max-h-80 overflow-y-auto scrollbar-hide">
-                            @foreach (auth()->user()->notifications()->latest()->take(10)->get() as $notification)
-                                @php
-                                    $data = $notification->data;
-                                @endphp
+                            @php
+                                $notifications = auth()->user()->notifications()->latest()->take(10)->get();
+                            @endphp
 
-                                <div class="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700">
-                                    @if (!empty($data['link']))
-                                        <a href="{{ $data['link'] }}"
-                                            class="block text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition">
-                                            {!! $data['message'] !!}
-                                        </a>
-                                    @else
-                                        <span class="text-gray-600 dark:text-gray-300">
-                                            {!! $data['message'] !!}
-                                        </span>
-                                    @endif
+                            @if ($notifications->isEmpty())
+                                <div class="px-4 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                                    Không có thông báo mới
                                 </div>
-                            @endforeach
+                            @else
+                                @foreach ($notifications as $notification)
+                                    @php
+                                        $data = $notification->data;
+                                    @endphp
 
+                                    <div class="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                                        @if (!empty($data['link']))
+                                            <a href="{{ $data['link'] }}"
+                                                class="block text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition">
+                                                {!! $data['message'] !!}
+                                            </a>
+                                        @else
+                                            <span class="text-gray-600 dark:text-gray-300">
+                                                {!! $data['message'] !!}
+                                            </span>
+                                        @endif
+
+                                        <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
+                                            <i class="fas fa-clock text-xs text-indigo-500 dark:text-indigo-400"></i>
+                                            {{ $notification->created_at->diffForHumans() }}
+                                        </div>
+                                    </div>
+                                @endforeach
+                            @endif
                         </div>
+
                         <div class="px-4 py-2 text-center border-t border-gray-200 dark:border-gray-700">
-                            <a href="#" class="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">Xem thông
-                                báo trước đó</a>
+                            <a href="#" class="text-sm text-indigo-600 dark:text-indigo-400 hover:underline">
+                                Xem thông báo trước đó
+                            </a>
                         </div>
                     </x-slot>
                 </x-dropdown>
+
 
                 <x-dropdown align="right" width="52">
                     <x-slot name="trigger">
