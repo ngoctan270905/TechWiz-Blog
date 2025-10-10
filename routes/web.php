@@ -23,9 +23,11 @@ Route::middleware('auth', 'verified')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    Route::post('/notifications/read', [NotificationController::class, 'markAllAsRead'])
-        ->name('notifications.markRead');
+   
 });
+
+ Route::post('/notifications/read', [NotificationController::class, 'markAllAsRead'])
+        ->name('notifications.markRead');
 
 # Google OAuth Routes
 Route::get('/auth/google', [GoogleController::class, 'redirectToGoogle'])->name('google.redirect');

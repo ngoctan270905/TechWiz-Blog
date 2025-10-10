@@ -134,32 +134,68 @@
         const badge = document.getElementById('notification-badge');
         const list = document.getElementById('notification-list');
 
+        // Hàm chung để thêm thông báo và cập nhật badge
+        const appendNotification = (data) => {
+            const li = document.createElement('li');
+            li.className =
+                "px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200";
+
+            // Xây dựng nội dung (có thể có link)
+            const content = data.link ?
+                `<a href="${data.link}" class="block text-sm text-gray-800 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400 transition">${data.message}</a>` :
+                `<span class="text-sm text-gray-700 dark:text-gray-300">${data.message}</span>`;
+
+            // Xây dựng thẻ li hoàn chỉnh
+            li.innerHTML = `
+                ${content}
+                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
+                    <i class="${data.icon || 'fa-solid fa-clock'} text-xs text-indigo-500 dark:text-indigo-400"></i> Vừa xong
+                </div>
+            `;
+
+            // Thêm vào đầu danh sách
+            if (list) {
+                list.prepend(li);
+            }
+
+            // Cập nhật badge
+            if (badge) {
+                let count = parseInt(badge.textContent || 0) + 1;
+                badge.textContent = count;
+                badge.classList.remove('hidden');
+            }
+        };
+
+
         // Lắng nghe realtime
         if (window.Echo) {
+            // 1. Lắng nghe kênh riêng tư của người dùng Admin (Ví dụ: thông báo Login)
             window.Echo.private('notifications.' + userId)
                 .listen('.user.logged-in', (e) => {
-                    // Append thông báo mới
-                    const li = document.createElement('li');
-                    li.className =
-                        "px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all duration-200";
-                    li.innerHTML = `
-                    <span class="text-sm text-gray-700 dark:text-gray-300">${e.message}</span>
-                    <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
-                        <i class="fa-solid fa-clock text-xs text-indigo-500 dark:text-indigo-400"></i> Vừa xong
-                    </div>
-                `;
-                    list.prepend(li);
-
-                    // Cập nhật badge
-                    if (badge) {
-                        let count = parseInt(badge.textContent || 0) + 1;
-                        badge.textContent = count;
-                        badge.classList.remove('hidden');
-                    }
+                    // Dữ liệu từ UserLoggedIn Event
+                    appendNotification({
+                        message: `Bạn đã đăng nhập thành công.`, // Cập nhật nội dung cho phù hợp
+                        link: '#',
+                        icon: 'fa-solid fa-clock', // Sử dụng icon mặc định nếu không có
+                    });
                 });
+
+
+            // 2. Lắng nghe kênh thông báo chung của Admin (DÀNH CHO ĐĂNG KÝ MỚI)
+            // Kênh này nhận thông báo từ NewUserRegistered Notification
+            window.Echo.private('admin.notifications')
+                .listen('.user.registered', (e) => {
+                    appendNotification({
+                        message: `Người dùng mới ${e.user.name} vừa đăng ký.`,
+                        link: '#',
+                        icon: 'fa-solid fa-user-plus',
+                    });
+                });
+
+            // HẾT PHẦN CODE MỚI THÊM VÀO
         }
 
-        // Thay đổi: Khi bấm nút chuông (notification-trigger) để mở dropdown
+        // Thay đổi: Khi bấm nút chuông (notification-trigger) để mở dropdown (logic Mark as Read)
         const notificationTrigger = document.getElementById('notification-trigger');
         if (notificationTrigger) {
             notificationTrigger.addEventListener('click', () => {

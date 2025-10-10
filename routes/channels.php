@@ -32,3 +32,8 @@ Broadcast::channel('notifications.{userId}', function ($user, $userId) {
     // Chỉ cho phép người dùng có ID khớp với userId được tham gia kênh này
     return (int) $user->id === (int) $userId; 
 });
+// routes/channels.php
+Broadcast::channel('admin.notifications', function ($user) {
+    return $user->role === 'admin';
+});
+
